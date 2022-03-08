@@ -1,0 +1,8 @@
+demo/a1.png	119	47	16	1
+demo/a1.png	119	47	16	2
+demo/a1.png	119	47	16	3
+demo/a1.png	119	47	16	4
+demo/a1.png	30	50	16	1
+demo/a1.png	30	50	16	2
+demo/a1.png	30	50	16	3
+demo/a1.png	30	50	16	4
