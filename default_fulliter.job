@@ -1,0 +1,12 @@
+random_mode 'twister'
+random_type []
+random_seed [1]
+saveIntermediate 1
+poolingRate .5
+scalesToRun 1:4
+Nor 4
+Na 7
+nIters [10 10 10 10]
+prIters 3
+radialOverlap .25
+numAngular 36
