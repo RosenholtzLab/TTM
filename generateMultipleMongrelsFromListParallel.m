@@ -1,9 +1,8 @@
     function generateMultipleMongrelsFromList(list_file,job_file)
 %  generateMultipleMongrelsFromList(list_file,job_file)
 %
-% Generates one mongrel per line in a text file (columns separated by tabs
-% or spaces)
-% 
+% Generates one mongrel per line in a text file (columns separated by tabs or spaces)
+%
 % list_file: filename of file with one line per image to be synthesized.
 %       Each line specifies the original image file, the x and y 
 %       coordinates of the fixation, the fovea radius in pixels, and an 
@@ -52,7 +51,7 @@ end
 p = gcp('nocreate');
 if isempty(p)
     c = parcluster('local'); % build the 'local' cluster object
-    nw = c.NumWorkers; % get the number of workers
+    nw = 4  %c.NumWorkers;  get the number of workers
     parpool(nw-1); % open parallel pool, leaving one worker for CPU managment
 end
 

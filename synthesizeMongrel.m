@@ -137,7 +137,9 @@ prm.savename = sprintf('intermediateResults_%s',imname); %folder name for saving
 %   (this is a good idea for typical psychophysical displays with a blank 
 %   background, but it is ok for the user to change this)
 padding_color = im(1,1,:);
-[im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+%[im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+
+[im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,100, foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
 
 fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
 
