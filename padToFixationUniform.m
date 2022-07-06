@@ -66,8 +66,8 @@ a = round(s/2); b = s-a; % a is radius of pooling region. b is also radius plus 
 buff = max(3,ceil(a/4)); % buffer for edge of pooling region
 
 % get centers of each pooling region
-px = round(1:0.75*s:w+(s-1));
-py = round(1:0.75*s:h+(s-1));
+px = round(1:0.75*s:w);
+py = round(1:0.75*s:h);
 [p_x,p_y] = meshgrid(px,py);
 num_pools_x = length(px);
 num_pools_y = length(py);
