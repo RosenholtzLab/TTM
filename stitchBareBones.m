@@ -1,4 +1,4 @@
-function [synth] = stitchBareBones(img, componentInfo, ...
+ function [synth] = stitchBareBones(img, componentInfo, ...
     maxscale, fixPt, reconSeed, imgMask, Nor, Na, ...
     nItersVec, foveaSize, prIters, poolingRegions, savename, ...
     saveIntermediateFlag, debugPath, verbose)
@@ -50,22 +50,38 @@ else
 end
 [x, y] = meshgrid(1:W,1:H); 
 
-% save fovea information
-% we presume that the "fovea" -- a region about fixation specified by
-% foveaSize, is preserved perfectly. On each global iteration we reapply
-% this known "fovea" information.
-% (somewhat wasteful, could just read in fovea image after the first time)
-foveaMask = (x-fixPt(1)).^2+(y-fixPt(2)).^2<foveaSize^2; 
+%check if we are using a fovea
+if fixPt(2) == nan
+    uniform_pooling = true;
+    sprintf('Not using Fovea')
+else
+    uniform_pooling = false;
+    sprintf('Using Fovea')
+end;
+
+%create our seed image
 foveaImage = zeros(size(img));
-for i = 1:D
-    foveaImage(:,:,i) = img(:,:,i).*foveaMask;
-end
-if saveIntermediateFlag>0 && maxscale(1)==1 % 1st time, save fovea image
-    if ~exist(sprintf('%s%s',debugPath,savename),'dir')
-        mkdir(sprintf('%s%s',debugPath,savename));
+
+z(500)
+
+%fill foveal region of seed image with original image if this is a foveaed mongrel
+if uniform_pooling==false
+    % save fovea information
+    % we presume that the "fovea" -- a region about fixation specified by
+    % foveaSize, is preserved perfectly. On each global iteration we reapply
+    % this known "fovea" information.
+    % (somewhat wasteful, could just read in fovea image after the first time)
+    foveaMask = (x-fixPt(1)).^2+(y-fixPt(2)).^2<foveaSize^2; 
+    for i = 1:D
+        foveaImage(:,:,i) = img(:,:,i).*foveaMask;
     end
-    if maxscale(1)==1 && nItersVec(2)==1
-        imwrite(foveaImage,sprintf('%s%s/fovea.png',debugPath,savename));
+    if saveIntermediateFlag>0 && maxscale(1)==1 % 1st time, save fovea image
+        if ~exist(sprintf('%s%s',debugPath,savename),'dir')
+            mkdir(sprintf('%s%s',debugPath,savename));
+        end
+        if maxscale(1)==1 && nItersVec(2)==1
+            imwrite(foveaImage,sprintf('%s%s/fovea.png',debugPath,savename));
+        end
     end
 end
 
@@ -251,9 +267,12 @@ for its=nItersStart:nItersStop
             disp(sprintf('Scale = %02d, Sweep = %02d, Pooling Region = %04d',currMaxScale,its,itp));
         end        
     end % move on to the next pooling region
-    % apply fovea to result
-    for i=1:D,
-        synth(:,:,i) = synth(:,:,i).*(1-foveaMask) + foveaImage(:,:,i).*foveaMask;
+    
+    if uniform_pooling==false
+        % apply fovea to result if this is a foveated image
+        for i=1:D,
+            synth(:,:,i) = synth(:,:,i).*(1-foveaMask) + foveaImage(:,:,i).*foveaMask;
+        end
     end
     
     % save intermediate results

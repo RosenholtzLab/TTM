@@ -142,18 +142,25 @@ padding_color = im(1,1,:);
 
 if isnan(y)
     disp(sprintf('Second Fixation coordinate is nan, running uniform pooling at %d pixels eccentricity.\n',x));
-    [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);    
+    [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+    
+    fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
+
+    % add peripheral blur to original image
+    im_pad = simulatePeripheralBlurUniform(im_pad, fixPt, foveaSize);
+    
 else
     disp(sprintf('Fixation coordinate is %d,%d, running foveated pooling.\n',x,y));
-    z(100)
     [im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
-z(100)
+    
+    fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
 
-fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
-fixPt
+    % add peripheral blur to original image
+    im_pad = simulatePeripheralBlur(im_pad, fixPt, foveaSize);
+    
+end
 
-% add peripheral blur to original image
-im_pad = simulatePeripheralBlur(im_pad, fixPt, foveaSize);
+
 % since some old routines grab the padding color from the corner, reinstate
 % that here, after the blurring operation which might have changed it
 im_pad(1,1,:) = padding_color; 
