@@ -48,29 +48,29 @@ if nargin == 1
 end
 
 %% 1. START PARALLEL PROCESSING
-p = gcp('nocreate');
-if isempty(p)
-    c = parcluster('local'); % build the 'local' cluster object
-    nw = 4  %c.NumWorkers;  get the number of workers
-    parpool(nw-1); % open parallel pool, leaving one worker for CPU managment
-end
+%p = gcp('nocreate');
+%if isempty(p)
+%    c = parcluster('local'); % build the 'local' cluster object
+%    nw = 2  %c.NumWorkers;  get the number of workers
+%    parpool(nw-1); % open parallel pool, leaving one worker for CPU %managment
+%end
 
 %% 2. LOAD THE LIST OF IMAGES AND PARAMETERS
 fid = fopen(list_file);
 % mongrel list is a cell structure with one element per column
-mongrel_list = textscan(fid, '%s%d%d%d%d', 'CommentStyle', '%', 'MultipleDelimsAsOne', 1);
+mongrel_list = textscan(fid, '%s%f%f%f%s', 'CommentStyle', '%', 'MultipleDelimsAsOne', 1);
 fclose(fid);
 num_mongrels = size(mongrel_list{1}, 1);
 im_name = mongrel_list{1};
-im_fixation_x = double(mongrel_list{2});
-im_fixation_y = double(mongrel_list{3});
-fovea_size = double(mongrel_list{4});
+im_fixation_x = mongrel_list{2};
+im_fixation_y = mongrel_list{3};
+fovea_size = mongrel_list{4};
 mongrel_index = mongrel_list{5};
 % mongrel_index is used to number output filenames if generating a bunch of
 % mongrels from the same input image + fixation point
 
 %% 3. GENERATE THE MONGRELS
-parfor ii = 1:num_mongrels 
+for ii = 1:num_mongrels 
     synthesizeMongrel(im_name{ii}, ...
         im_fixation_x(ii), im_fixation_y(ii), fovea_size(ii), ...
         mongrel_index(ii),0,job_file);
