@@ -83,10 +83,12 @@ end
 % output to a folder (within the same folder of the code) named
 % image_fixation_date_mongrelIndex
 [~, imname] = fileparts(img_file);
-out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',num2str(mongrel_idx));
+out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
 % create folder as needed
+
 curr_dir = dir;
 tmp_i = 1;
+
 while sum(strcmp({curr_dir.name},out_dir))
     namesplit = strsplit(out_dir,'_');
     if ~strcmp(namesplit{end},'1') && tmp_i == 1
@@ -97,11 +99,11 @@ while sum(strcmp({curr_dir.name},out_dir))
     end
 end
 mkdir(out_dir);
-im_pad_path = strcat(out_dir, '/pad_',imname,'_',num2str(mongrel_idx),'.png');
-img_mask_path = strcat(out_dir, '/imgmask',imname,'_',num2str(mongrel_idx),'.png');
-output_parameter_path = strcat(out_dir, '/synthesis_parameter_',imname,'_',num2str(mongrel_idx),'.txt'); % for storing parameters.
-out_path =  strcat(out_dir, '/mongrelized_',imname,'_',num2str(mongrel_idx),'.png'); % for storing synthesized mongrels.
-parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',num2str(mongrel_idx),'.txt'); % for storing parameters used in the synthesis.
+im_pad_path = strcat(out_dir, '/pad_',imname,'_',string(mongrel_idx),'.png');
+img_mask_path = strcat(out_dir, '/imgmask',imname,'_',string(mongrel_idx),'.png');
+output_parameter_path = strcat(out_dir, '/synthesis_parameter_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters.
+out_path =  strcat(out_dir, '/mongrelized_',imname,'_',string(mongrel_idx),'.png'); % for storing synthesized mongrels.
+parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters used in the synthesis.
 debug_path = strcat(out_dir, '/debug/');
 if prm.colorSynth
     addpath(genpath('FastICA/'));
@@ -137,11 +139,18 @@ prm.savename = sprintf('intermediateResults_%s',imname); %folder name for saving
 %   (this is a good idea for typical psychophysical displays with a blank 
 %   background, but it is ok for the user to change this)
 padding_color = im(1,1,:);
-%[im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
 
-[im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,100, foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+if isnan(y)
+    disp(sprintf('Second Fixation coordinate is nan, running uniform pooling at %d pixels eccentricity.\n',x));
+    [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);    
+else
+    disp(sprintf('Fixation coordinate is %d,%d, running foveated pooling.\n',x,y));
+    z(100)
+    [im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+z(100)
 
 fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
+fixPt
 
 % add peripheral blur to original image
 im_pad = simulatePeripheralBlur(im_pad, fixPt, foveaSize);
@@ -232,6 +241,7 @@ for ii = 1 : length(prm.scalesToRun)
         prm.foveaSize, prm.prIters, ...
         prm.poolingRegions, prm.savename, ...
         prm.saveIntermediate, prm.debugPath, verbose);
+    z(100)
 end
 
 %% 8. SAVE RESULT
