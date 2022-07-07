@@ -51,18 +51,14 @@ end
 [x, y] = meshgrid(1:W,1:H); 
 
 %check if we are using a fovea
-if fixPt(2) == nan
+if isnan(fixPt(2))
     uniform_pooling = true;
-    sprintf('Not using Fovea')
 else
     uniform_pooling = false;
-    sprintf('Using Fovea')
 end;
 
 %create our seed image
 foveaImage = zeros(size(img));
-
-z(500)
 
 %fill foveal region of seed image with original image if this is a foveaed mongrel
 if uniform_pooling==false
@@ -132,6 +128,11 @@ for itp=1:length(poolingRegions)
     a = poolingRegions(itp,3);
     b = poolingRegions(itp,4);
     try
+        p_y-a-buffPixels+1;
+        p_y+b+buffPixels;
+        p_x-a-buffPixels+1;
+        p_x+b+buffPixels;
+        size(img);
         impatch = img(p_y-a-buffPixels+1:p_y+b+buffPixels, p_x-a-buffPixels+1:p_x+b+buffPixels, :);
     catch
         keyboard

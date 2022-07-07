@@ -248,7 +248,6 @@ for ii = 1 : length(prm.scalesToRun)
         prm.foveaSize, prm.prIters, ...
         prm.poolingRegions, prm.savename, ...
         prm.saveIntermediate, prm.debugPath, verbose);
-    z(100)
 end
 
 %% 8. SAVE RESULT

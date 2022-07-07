@@ -126,7 +126,7 @@ padding = [padLeft padRight padTop padBot];
 
 numPoolingRegions = length(p_x);
 
-poolingRegions = [p_x,p_y,repmat(a,numPoolingRegions),repmat(b,numPoolingRegions),repmat(buff,numPoolingRegions)];
+poolingRegions = cat(2,p_x,p_y,repmat(a,numPoolingRegions,1),repmat(b,numPoolingRegions,1),repmat(buff,numPoolingRegions,1));
 
 poolingRegions(:,1) = poolingRegions(:,1) + padLeft;
 poolingRegions(:,2) = poolingRegions(:,2) + padTop;
@@ -137,27 +137,28 @@ figure; image(paddedimg);
 hold on;
 for itp1=1:numPoolingRegions
     buffPixels = poolingRegions(itp1,5);            
-        p_x = poolingRegions(itp1, 1);
-        p_y = poolingRegions(itp1, 2);
-        a = poolingRegions(itp1, 3);
-        b = poolingRegions(itp1, 4);
-        buffPixels = 0;
-        X = [p_x-a-buffPixels+1 p_x-a-buffPixels+1;
-            p_x+b+buffPixels, p_x+b+buffPixels;
-            p_x-a-buffPixels+1 p_x+b+buffPixels;
-            p_x-a-buffPixels+1 p_x+b+buffPixels]';
-        Y = [p_y-a-buffPixels+1 p_y+b+buffPixels;
-            p_y-a-buffPixels+1 p_y+b+buffPixels;
-            p_y-a-buffPixels+1 p_y-a-buffPixels+1;
-            p_y+b+buffPixels p_y+b+buffPixels]';
-        line(X, Y,'LineWidth',1)  
+    p_x = poolingRegions(itp1, 1);
+    p_y = poolingRegions(itp1, 2);
+    a = poolingRegions(itp1, 3);
+    b = poolingRegions(itp1, 4);
+    buffPixelsViz = 0;
+    X = [p_x-a-buffPixelsViz+1 p_x-a-buffPixelsViz+1;
+        p_x+b+buffPixelsViz, p_x+b+buffPixelsViz;
+        p_x-a-buffPixelsViz+1 p_x+b+buffPixelsViz;
+        p_x-a-buffPixelsViz+1 p_x+b+buffPixelsViz]';
+    Y = [p_y-a-buffPixelsViz+1 p_y+b+buffPixelsViz;
+        p_y-a-buffPixelsViz+1 p_y+b+buffPixelsViz;
+        p_y-a-buffPixelsViz+1 p_y-a-buffPixelsViz+1;
+        p_y+b+buffPixelsViz p_y+b+buffPixelsViz]';
+    line(X, Y,'LineWidth',1)  
 end
 axis('image');
 hold off;
 % save a picture of the pooling regions 
 save_name = strcat(out_dir,'/poolingRegion.png');
 
-[X, map] = frame2im(getframe(gcf));                                                  
+[X, map] = frame2im(getframe(gcf));                                              
+
 imwrite(X,save_name); 
 close all;
 return;
