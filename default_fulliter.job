@@ -1,4 +1,4 @@
-random_mode 'twister'
+random_mode 'shuffle'
 random_type []
 random_seed [1]
 saveIntermediate 1

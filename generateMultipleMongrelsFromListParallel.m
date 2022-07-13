@@ -48,12 +48,12 @@ if nargin == 1
 end
 
 %% 1. START PARALLEL PROCESSING
-%p = gcp('nocreate');
-%if isempty(p)
-%    c = parcluster('local'); % build the 'local' cluster object
-%    nw = 2  %c.NumWorkers;  get the number of workers
-%    parpool(nw-1); % open parallel pool, leaving one worker for CPU %managment
-%end
+p = gcp('nocreate');
+if isempty(p)
+    c = parcluster('local'); % build the 'local' cluster object
+    nw = c.NumWorkers  %get the number of workers
+    parpool(nw-1); % open parallel pool, leaving one worker for CPU %managment
+end
 
 %% 2. LOAD THE LIST OF IMAGES AND PARAMETERS
 fid = fopen(list_file);
@@ -70,7 +70,7 @@ mongrel_index = mongrel_list{5};
 % mongrels from the same input image + fixation point
 
 %% 3. GENERATE THE MONGRELS
-for ii = 1:num_mongrels 
+parfor ii = 1:num_mongrels 
     synthesizeMongrel(im_name{ii}, ...
         im_fixation_x(ii), im_fixation_y(ii), fovea_size(ii), ...
         mongrel_index(ii),0,job_file);
