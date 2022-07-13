@@ -1,7 +1,7 @@
 function [paddedimg, fx, fy, poolingRegions, padding] = ...
-    padToFixationUniform(img, fixPt, foveaSize, poolingRate, radialOverlap, numAngular, padval, out_dir)
+    padToFixationUniform(img, fixPt, foveaSize, poolingRate, radialOverlap, numAngular, padval, out_dir, latticeType)
 % [paddedimg, fx, fy, poolingRegions] = padToFixation(img, fixPt, foveaSize, 
-%       poolingRate, radialOverlap, numAngular, padval, out_dir)
+%       poolingRate, radialOverlap, numAngular, padval, out_dir, latticeType)
 %
 % Computes pooling regions and pads the input image such that the outermost 
 % regions in each radial direction from fixation lie completely outside the 
@@ -17,6 +17,7 @@ function [paddedimg, fx, fy, poolingRegions, padding] = ...
 % numAngular: number of pooling regions at a given eccentricity
 % padval: what color to pad with
 % out_dir: the directory where the figure showing pooling regions is saved
+% latticeType: how to align the pooling regions (square, rhombic, or hexagonal)
 %
 % OUTPUTS
 % paddedimg: image after padding
@@ -64,21 +65,48 @@ s = round(r*poolingRate); % diameter
 a = round(s/2); b = s-a; % a is radius of pooling region. b is also radius plus spill-over
 buff = max(3,ceil(a/4)); % buffer for edge of pooling region
 
-% get centers of each pooling region: center regions at img center
-img_center = [round(w/2),round(h/2)];
-px_left = round(img_center(1):-(1-radialOverlap)*s:1-a);
-px_right = round(img_center(1):(1-radialOverlap)*s:w+b);
-px = cat(2,flip(px_left),px_right(2:end));
-py_left = round(img_center(2):-(1-radialOverlap)*s:1-a);
-py_right = round(img_center(2):(1-radialOverlap)*s:h+b);
-py = cat(2,flip(py_left),py_right(2:end));
 
-%old code to center on upper left edge
-%px = round(1:(1-radialOverlap)*s:w+b);
-%py = round(1:(1-radialOverlap)*s:h+b);
+%% Calulate Lattice:
+latticeType
+dist = (1-radialOverlap)*s;
+if strcmp(latticeType,'hexagonal') | strcmp(latticeType,'grid')
+    % get centers of each pooling region: center regions at img center
+    img_center = [round(w/2),round(h/2)];
+    px_left = round(img_center(1):-(1-radialOverlap)*s:1-a);
+    px_right = round(img_center(1):(1-radialOverlap)*s:w+b);
+    px = cat(2,flip(px_left),px_right(2:end));
+    py_left = round(img_center(2):-(1-radialOverlap)*s:1-a);
+    py_right = round(img_center(2):(1-radialOverlap)*s:h+b);
+    py = cat(2,flip(py_left),py_right(2:end));
+
+    %old code to center on upper left edge
+    %px = round(1:(1-radialOverlap)*s:w+b);
+    %py = round(1:(1-radialOverlap)*s:h+b);
+elseif strcmp(latticeType,'rhombic')
+    img_center = [round(w/2),round(h/2)];
+    px_left = round(img_center(1):-2*dist/sqrt(2):1-a);
+    px_right = round(img_center(1):2*dist/sqrt(2):w+b);
+    px = cat(2,flip(px_left),px_right(2:end));
+    py_left = round(img_center(2):-dist/sqrt(2):1-a);
+    py_right = round(img_center(2):dist/sqrt(2):h+b);
+    py = cat(2,flip(py_left),py_right(2:end));
+else
+    error('Lattice Type must be grid, hexagonal or rhombic')
+end
+
+%create meshgrid of x and y coordinates, and calcaulate size
 [p_x,p_y] = meshgrid(px,py);
 num_pools_x = length(px);
 num_pools_y = length(py);
+
+%if we have a rhombic lattice, shift every other x coordiante down by half index
+if strcmp(latticeType,'rhombic')
+    p_x(1:2:end,1:end) = p_x(1:2:end,1:end)+round(dist/sqrt(2));
+elseif strcmp(latticeType,'hexagonal')
+    p_x(1:2:end,1:end) = p_x(1:2:end,1:end)+round(dist/2);
+    %p_y(1:end,1:2:end) = p_y(1:end,1:2:end)+round(dist/2);
+    %p_x(1:2:end,end) = p_x(1:2:end,1)-dist; %wrap last onto top
+end
 
 %% 2. CHOOSE PADDING TO ENSURE THAT THE PADDED IMAGE JUST BARELY INCLUDES ALL POOLING REGIONS
 
@@ -88,6 +116,7 @@ num_pools_y = length(py);
 
 % unpacking the poolingRegions array just so the code is clearer
 %clear p_x p_y a b buff
+
 p_x = p_x(:);
 p_y = p_y(:);
 start_x = p_x - a - buff + 1;
@@ -99,6 +128,14 @@ min_x = min(start_x);
 max_x = max(end_x);
 min_y = min(start_y);
 max_y = max(end_y);
+
+
+%plotting center pool region dots
+figure(1);
+imshow(img);
+hold on;
+plot(p_x,p_y,'.');
+hold off;
 
 % pad[Left/Right/Bot/Top] is the amount to add in a particular direction
 % for min_x and min_y, add a pixel; the minimum will be 
@@ -160,5 +197,4 @@ save_name = strcat(out_dir,'/poolingRegion.png');
 [X, map] = frame2im(getframe(gcf));                                              
 
 imwrite(X,save_name); 
-close all;
 return;

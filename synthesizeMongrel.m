@@ -141,8 +141,10 @@ prm.savename = sprintf('intermediateResults_%s',imname); %folder name for saving
 padding_color = im(1,1,:);
 
 if isnan(y)
-    disp(sprintf('Second Fixation coordinate is nan, running uniform pooling at %d pixels eccentricity.\n',x));
-    [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+    latticeType = 'hexagonal'; %grid rhombic hexagonal
+    disp(sprintf('Second Fixation coordinate is nan, running uniform pooling at %d pixels eccentricity.',x));
+    disp(sprintf('Using %s Lattice',latticeType));
+    [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir,latticeType);
     
     fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
 

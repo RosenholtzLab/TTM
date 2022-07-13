@@ -87,6 +87,8 @@ while sum(notdone)>0,   % if some angles still not done
     itr = itr + 1; % increment the radius to the next ring
 end
 
+
+
 %% 2. CHOOSE PADDING TO ENSURE THAT THE PADDED IMAGE JUST BARELY INCLUDES ALL POOLING REGIONS
 
 % to find the right padding, need to find the minimum and maximum values of
@@ -109,6 +111,13 @@ min_x = min(start_x);
 max_x = max(end_x);
 min_y = min(start_y);
 max_y = max(end_y);
+
+%plotting center pool region dots
+%figure(1);
+%imshow(img);
+%hold on;
+%plot(p_x,p_y,'.');
+%hold off;
 
 % pad[Left/Right/Bot/Top] is the amount to add in a particular direction
 % for min_x and min_y, add a pixel; the minimum will be 
@@ -140,7 +149,7 @@ poolingRegions(:,2) = poolingRegions(:,2) + fy;
 
 % mark pooling region boundaries with buffer zone added and plot on screen
 [H, W, ~] = size(paddedimg);
-figure; image(paddedimg); axis('image');
+figure; image(paddedimg);
 % length(poolingRegions);
 for itp1=1:length(poolingRegions)
     buffPixels = poolingRegions(itp1,5);            
@@ -148,7 +157,8 @@ for itp1=1:length(poolingRegions)
         p_y = poolingRegions(itp1, 2);
         a = poolingRegions(itp1, 3);
         b = poolingRegions(itp1, 4);
-        if (p_x-a-buffPixels+1 > 0 & p_x+b+buffPixels < W & p_y-a-buffPixels+1 > 0 & p_y+b+buffPixels < H & ang_idx(itp1) == 1)
+%        if (p_x-a-buffPixels+1 > 0 & p_x+b+buffPixels < W & p_y-a-buffPixels+1 > 0 & p_y+b+buffPixels < H & %ang_idx(itp1) == 1)
+        if (p_x-a-buffPixels+1 > 0 & p_x+b+buffPixels < W & p_y-a-buffPixels+1 > 0 & p_y+b+buffPixels < H )
             buffPixels = 0;
             X = [p_x-a-buffPixels+1 p_x-a-buffPixels+1;
                 p_x+b+buffPixels, p_x+b+buffPixels;
@@ -161,8 +171,13 @@ for itp1=1:length(poolingRegions)
             line(X, Y,'LineWidth',1)
         end      
 end
+axis('image');
+hold off;
 % save a picture of the pooling regions 
 save_name = strcat(out_dir,'/poolingRegion.png');
-saveas(gcf,save_name);
 
+[X, map] = frame2im(getframe(gcf));                                              
+
+imwrite(X,save_name); 
+close all;
 return;
