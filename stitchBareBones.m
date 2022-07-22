@@ -161,6 +161,10 @@ for itp=1:length(poolingRegions)
     
 end
 
+% textureDescriptor
+% first_texture = textureDescriptor{1}
+% save('textureDescriptor.mat','textureDescriptor')
+
 if saveIntermediateFlag>0
     if ~exist(sprintf('%s%s/intermediate',debugPath,savename),'dir')
         mkdir(sprintf('%s%s/intermediate',debugPath,savename));
@@ -170,12 +174,17 @@ end
 %% 3. SYNTHESIZE POOLING REGIONS 
 for its=nItersStart:nItersStop
     disp(sprintf('Scale = %02d, Sweep = %02d',currMaxScale,its));
+    listPR = [1:length(poolingRegions)];
+    
     % check if this round is spiraling out or in
-    if mod(its,2)
-        listPR = [1:length(poolingRegions)];
-    else
-        listPR = [length(poolingRegions):-1:1];
-    end
+    % if mod(its,2)
+    %     listPR = [1:length(poolingRegions)];
+    % else
+    %     listPR = [length(poolingRegions):-1:1];
+    % end
+    
+    %shuffle randomly
+    listPR = randperm(length(poolingRegions));
 
     % synthesize pooling regions one by one
     for itp=listPR
