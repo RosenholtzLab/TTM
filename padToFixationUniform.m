@@ -68,6 +68,7 @@ buff = max(3,ceil(a/4)); % buffer for edge of pooling region
 
 %% Calulate Lattice:
 latticeType
+radialOverlap
 dist = (1-radialOverlap)*s;
 if strcmp(latticeType,'hexagonal') | strcmp(latticeType,'grid')
     % get centers of each pooling region: center regions at img center
@@ -84,7 +85,8 @@ if strcmp(latticeType,'hexagonal') | strcmp(latticeType,'grid')
     %py = round(1:(1-radialOverlap)*s:h+b);
 elseif strcmp(latticeType,'rhombic')
     img_center = [round(w/2),round(h/2)];
-    px_left = round(img_center(1):-2*dist/sqrt(2):1-a);
+    % make the left side longer by one pooling region (2*a instead of a)
+    px_left = round(img_center(1):-2*dist/sqrt(2):1-2*a);
     px_right = round(img_center(1):2*dist/sqrt(2):w+b);
     px = cat(2,flip(px_left),px_right(2:end));
     py_left = round(img_center(2):-dist/sqrt(2):1-a);
@@ -95,13 +97,21 @@ else
 end
 
 %create meshgrid of x and y coordinates, and calcaulate size
-[p_x,p_y] = meshgrid(px,py);
+[p_x,p_y] = meshgrid(px,py)
 num_pools_x = length(px);
 num_pools_y = length(py);
+
+px,py
 
 %if we have a rhombic lattice, shift every other x coordiante down by half index
 if strcmp(latticeType,'rhombic')
     p_x(1:2:end,1:end) = p_x(1:2:end,1:end)+round(dist/sqrt(2));
+    % shifting causes an asymmetry on the left side
+    % we need to remove every other pooling reigion on the left edge
+    % set reigons to NaN and remove later
+    p_x(2:2:end,1) = NaN;
+    p_y(2:2:end,1) = NaN;
+
 elseif strcmp(latticeType,'hexagonal')
     p_x(1:2:end,1:end) = p_x(1:2:end,1:end)+round(dist/2);
     %p_y(1:end,1:2:end) = p_y(1:end,1:2:end)+round(dist/2);
@@ -119,6 +129,12 @@ end
 
 p_x = p_x(:);
 p_y = p_y(:);
+
+% remove extra pooling regions
+p_x = p_x(~isnan(p_x));
+p_y = p_y(~isnan(p_y));
+
+
 start_x = p_x - a - buff + 1;
 end_x = p_x + b + buff;
 start_y = p_y - a - buff + 1;
@@ -129,6 +145,7 @@ max_x = max(end_x);
 min_y = min(start_y);
 max_y = max(end_y);
 
+p_x,p_y
 
 %plotting center pool region dots
 figure(1);
@@ -136,6 +153,8 @@ imshow(img);
 hold on;
 plot(p_x,p_y,'.');
 hold off;
+
+
 
 % pad[Left/Right/Bot/Top] is the amount to add in a particular direction
 % for min_x and min_y, add a pixel; the minimum will be 
