@@ -161,9 +161,20 @@ for itp=1:length(poolingRegions)
     
 end
 
-% textureDescriptor
-% first_texture = textureDescriptor{1}
-% save('textureDescriptor.mat','textureDescriptor')
+% saving textureDescriptor (the feature vectors for each pooling region)
+% only saving at 4th scale this is the only time that the call to textureAnalysis_for_TTM
+% gets 4 scales as the scale parameter (which is all the scales to run)
+if currMaxScale==4
+    % get the output directory (remove the debug folder)
+    path_parts = regexp(debugPath,'/','split');
+    output_dir = sprintf('%s',path_parts{1});
+    % if ~exist(sprintf('%s',debugPath),'dir')
+    %     mkdir(sprintf('%s',debugPath));
+    % end
+    save(sprintf('%s/poolingDescriptor.mat',output_dir),'textureDescriptor', 'poolingRegions');
+    % save(sprintf('%s/parameter.mat',output_dir),'poolingRegions', '-append');
+    disp(sprintf('saved pooling region information'))
+end
 
 if saveIntermediateFlag>0
     if ~exist(sprintf('%s%s/intermediate',debugPath,savename),'dir')
