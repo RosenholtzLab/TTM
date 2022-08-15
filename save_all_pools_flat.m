@@ -26,7 +26,7 @@ function [texture_mat]=save_all_pools_new(filename,savename, image, with_pixel_h
     toc
     
     % specify chunk size for compression
-    h5create(sprintf('%s.h5',savename),sprintf('/%s',image),size(texture_mat));
+    h5create(sprintf('%s.h5',savename),sprintf('/%s',image),size(texture_mat),ChunkSize=[1 3 2306],Deflate=2);
     h5write(sprintf('%s.h5',savename),sprintf('/%s',image),texture_mat);
     
     
