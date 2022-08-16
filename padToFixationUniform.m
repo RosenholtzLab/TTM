@@ -32,6 +32,8 @@ function [paddedimg, fx, fy, poolingRegions, padding] = ...
 % Copyright (C) 2019  Ruth Rosenholtz, Alvin Raj, & Lavanya Sharan
 % See COPYING.txt for license details
 
+no_save = 1;
+
 if nargin == 7
     out_dir = [];
 end
@@ -97,11 +99,9 @@ else
 end
 
 %create meshgrid of x and y coordinates, and calcaulate size
-[p_x,p_y] = meshgrid(px,py)
+[p_x,p_y] = meshgrid(px,py);
 num_pools_x = length(px);
 num_pools_y = length(py);
-
-px,py
 
 %if we have a rhombic lattice, shift every other x coordiante down by half index
 if strcmp(latticeType,'rhombic')
@@ -145,14 +145,12 @@ max_x = max(end_x);
 min_y = min(start_y);
 max_y = max(end_y);
 
-p_x,p_y
-
 %plotting center pool region dots
-figure(1);
-imshow(img);
-hold on;
-plot(p_x,p_y,'.');
-hold off;
+% figure(1);
+% imshow(img);
+% hold on;
+% plot(p_x,p_y,'.');
+% hold off;
 
 
 
@@ -214,6 +212,10 @@ hold off;
 save_name = strcat(out_dir,'/poolingRegion.png');
 
 [X, map] = frame2im(getframe(gcf));                                              
-
-imwrite(X,save_name); 
+if no_save == 0;
+    imwrite(X,save_name);
+end
+% *** remove saving ***
+% imwrite(X,save_name); 
+% *** remove saving ***
 return;
