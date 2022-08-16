@@ -141,7 +141,7 @@ prm.savename = sprintf('intermediateResults_%s',imname); %folder name for saving
 padding_color = im(1,1,:);
 
 if isnan(y)
-    latticeType = 'hexagonal'; %grid rhombic hexagonal
+    latticeType = 'rhombic'; %grid rhombic hexagonal
     disp(sprintf('Second Fixation coordinate is nan, running uniform pooling at %d pixels eccentricity.',x));
     disp(sprintf('Using %s Lattice',latticeType));
     [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir,latticeType);
