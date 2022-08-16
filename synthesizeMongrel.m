@@ -33,6 +33,8 @@ function synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_fil
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+no_save = 1;
+
 addpath(genpath('./'));
 
 if nargin < 5
@@ -167,7 +169,12 @@ end
 % that here, after the blurring operation which might have changed it
 im_pad(1,1,:) = padding_color; 
 % save the padded, acuity-adjusted input image
-imwrite(im_pad, im_pad_path);
+if no_save == 0
+    imwrite(im_pad, im_pad_path);
+end
+% *** remove saving ***
+% imwrite(im_pad, im_pad_path);
+% *** remove saving ***
 
 %% 5. CREATE A MASK SHOWING ORIGINAL IMAGE VS. PADDING
 % if useImgMask is set (typical use), then on some synthesis iterations we
@@ -184,7 +191,12 @@ else
     maskimg = padarray(maskimg,[0 padding(2)], 0, 'post') ;
 	maskimg = padarray(maskimg,[padding(3) 0], 0, 'pre') ;
 	maskimg = padarray(maskimg,[padding(4) 0], 0, 'post') ;
-    imwrite(maskimg, img_mask_path);
+    if no_save == 0
+        imwrite(maskimg, img_mask_path);
+    end
+    % *** remove saving ***
+    % imwrite(maskimg, img_mask_path);
+    % *** remove saving ***
 end
 
 %% 6. CREATE OUTPUT PARAMETERS FILE
@@ -207,7 +219,12 @@ prm.componentInfo = componentInfo;
 prm.poolingRegions = poolingRegions;
 prm.useImgMask = useImgMask;
 try
-    save(strcat(out_dir,'/parameter.mat'),'prm');
+    if no_save == 0
+        save(strcat(out_dir,'/parameter.mat'),'prm');
+    end
+    % *** remove saving *** 
+    %save(strcat(out_dir,'/parameter.mat'),'prm');
+    % *** remove saving ***
 catch
     keyboard
 end
@@ -258,5 +275,6 @@ if ~isempty(reconsb)
     % remove padding
     res = reconsb(padding(3)+1:padding(3)+size(im,1), padding(1)+1:padding(1)+size(im,2), :);
     imwrite(res, outname);
+
 end
 end
