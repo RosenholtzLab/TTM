@@ -85,7 +85,8 @@ end
 % output to a folder (within the same folder of the code) named
 % image_fixation_date_mongrelIndex
 [~, imname] = fileparts(img_file);
-out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
+% out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
+out_dir = strcat('/home/gridsan/groups/RosenholtzLab/ecc_',num2str(round(fx)));
 % create folder as needed
 
 curr_dir = dir;
@@ -104,8 +105,10 @@ mkdir(out_dir);
 im_pad_path = strcat(out_dir, '/pad_',imname,'_',string(mongrel_idx),'.png');
 img_mask_path = strcat(out_dir, '/imgmask',imname,'_',string(mongrel_idx),'.png');
 output_parameter_path = strcat(out_dir, '/synthesis_parameter_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters.
-out_path =  strcat(out_dir, '/mongrelized_',imname,'_',string(mongrel_idx),'.png'); % for storing synthesized mongrels.
+% out_path =  strcat(out_dir, '/mongrelized_',imname,'_',string(mongrel_idx),'.jpg'); % for storing synthesized mongrels.
+out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(fx)),'.jpg');
 parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters used in the synthesis.
+parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing 
 debug_path = strcat(out_dir, '/debug/');
 if prm.colorSynth
     addpath(genpath('FastICA/'));
@@ -229,30 +232,35 @@ catch
     keyboard
 end
 
-% print parameters to output file
-fid = fopen(parameter_output_path,'wt');
-fwrite(fid,sprintf('useImgMask ''%d''\n', prm.useImgMask)); 
-fwrite(fid,sprintf('random_mode ''%s''\n', prm.random_mode)); 
-fwrite(fid,sprintf('random_type ''%s''\n', prm.curr_random_seed.Type)); 
-fwrite(fid,sprintf('random_seed ''%d''\n', prm.curr_random_seed.Seed)); 
-fwrite(fid,sprintf('saveIntermediate ''%d''\n', prm.saveIntermediate)); 
-fwrite(fid,sprintf('poolingRate ''%d''\n', prm.poolingRate)); 
-fprintf(fid, sprintf('scalesToRun [%d, %d, %d, %d]\n', ...
-    prm.scalesToRun(1), prm.scalesToRun(2), prm.scalesToRun(3), prm.scalesToRun(4)));
-fwrite(fid,sprintf('Nor ''%d''\n', prm.Nor)); 
-fwrite(fid,sprintf('Na ''%d''\n', prm.Na)); 
-fprintf(fid, sprintf('nIters [%d, %d, %d, %d]\n', ...
-    prm.nIters(1), prm.nIters(2), prm.nIters(3), prm.nIters(4)));
-fwrite(fid,sprintf('prIters ''%d''\n', prm.prIters)); 
-fwrite(fid,sprintf('radialOverlap ''%d''\n', prm.radialOverlap)); 
-fwrite(fid,sprintf('numAngular ''%d''\n', prm.numAngular)); 
-fwrite(fid,sprintf('colorSynth ''%d''\n', prm.colorSynth)); 
-fwrite(fid,sprintf('foveaSize ''%d''\n', prm.foveaSize)); 
-fwrite(fid,sprintf('fix_x ''%d''\n', prm.source_img_fixation_x)); 
-fwrite(fid,sprintf('fix_y ''%d''\n', prm.source_img_fixation_y)); 
-fwrite(fid,sprintf('image_name ''%s''\n', prm.image_name)); 
-fwrite(fid,sprintf('out_directory ''%s''\n', prm.out_dir)); 
+fid = fopen("/home/gridsan/groups/RosenholtzLab/imagename_randomseeds.txt",'a');
+fwrite(fid,sprintf('%s\t', prm.image_name));
+fwrite(fid,sprintf('%d\n', prm.curr_random_seed.Seed));
 fclose(fid);
+
+% print parameters to output file
+% fid = fopen(parameter_output_path,'wt');
+% fwrite(fid,sprintf('useImgMask ''%d''\n', prm.useImgMask)); 
+% fwrite(fid,sprintf('random_mode ''%s''\n', prm.random_mode)); 
+% fwrite(fid,sprintf('random_type ''%s''\n', prm.curr_random_seed.Type)); 
+% fwrite(fid,sprintf('random_seed ''%d''\n', prm.curr_random_seed.Seed)); 
+% fwrite(fid,sprintf('saveIntermediate ''%d''\n', prm.saveIntermediate)); 
+% fwrite(fid,sprintf('poolingRate ''%d''\n', prm.poolingRate)); 
+% fprintf(fid, sprintf('scalesToRun [%d, %d, %d, %d]\n', ...
+%     prm.scalesToRun(1), prm.scalesToRun(2), prm.scalesToRun(3), prm.scalesToRun(4)));
+% fwrite(fid,sprintf('Nor ''%d''\n', prm.Nor)); 
+% fwrite(fid,sprintf('Na ''%d''\n', prm.Na)); 
+% fprintf(fid, sprintf('nIters [%d, %d, %d, %d]\n', ...
+%     prm.nIters(1), prm.nIters(2), prm.nIters(3), prm.nIters(4)));
+% fwrite(fid,sprintf('prIters ''%d''\n', prm.prIters)); 
+% fwrite(fid,sprintf('radialOverlap ''%d''\n', prm.radialOverlap)); 
+% fwrite(fid,sprintf('numAngular ''%d''\n', prm.numAngular)); 
+% fwrite(fid,sprintf('colorSynth ''%d''\n', prm.colorSynth)); 
+% fwrite(fid,sprintf('foveaSize ''%d''\n', prm.foveaSize)); 
+% fwrite(fid,sprintf('fix_x ''%d''\n', prm.source_img_fixation_x)); 
+% fwrite(fid,sprintf('fix_y ''%d''\n', prm.source_img_fixation_y)); 
+% fwrite(fid,sprintf('image_name ''%s''\n', prm.image_name)); 
+% fwrite(fid,sprintf('out_directory ''%s''\n', prm.out_dir)); 
+% fclose(fid);
 
 %% 7. RUN TTM
 % run the job
@@ -274,7 +282,7 @@ outname = prm.out_path;
 if ~isempty(reconsb)
     % remove padding
     res = reconsb(padding(3)+1:padding(3)+size(im,1), padding(1)+1:padding(1)+size(im,2), :);
-    imwrite(res, outname);
+    imwrite(res, outname, 'jpg', 'Quality', 100);
 
 end
 end

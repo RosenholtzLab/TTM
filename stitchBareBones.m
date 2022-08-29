@@ -171,9 +171,9 @@ if currMaxScale==4
     % if ~exist(sprintf('%s',debugPath),'dir')
     %     mkdir(sprintf('%s',debugPath));
     % end
-    save(sprintf('%s/poolingDescriptor.mat',output_dir),'textureDescriptor', 'poolingRegions');
+    % save(sprintf('%s/poolingDescriptor.mat',output_dir),'textureDescriptor', 'poolingRegions');
     % save(sprintf('%s/parameter.mat',output_dir),'poolingRegions', '-append');
-    disp(sprintf('saved pooling region information'))
+    % disp(sprintf('saved pooling region information'))
 end
 
 if saveIntermediateFlag>0
