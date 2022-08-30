@@ -1,0 +1,1 @@
+coco_test/000000000205.jpg	100	NaN	16	uniform_60olap_rho
