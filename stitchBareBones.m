@@ -1,7 +1,7 @@
- function [synth] = stitchBareBones(img, componentInfo, ...
+function [synth] = stitchBareBones(img, componentInfo, ...
     maxscale, fixPt, reconSeed, imgMask, Nor, Na, ...
     nItersVec, foveaSize, prIters, poolingRegions, savename, ...
-    saveIntermediateFlag, debugPath, verbose)
+    saveIntermediateFlag, debugPath, verbose, colorSynth)
 % [synth] = stitchBareBones(img, componentInfo, ...
 %     maxscale, fixPt, reconSeed, seedMask, Nor, Na, ...
 %     nItersVec, foveaSize, prIters, poolingRegions, savename, ...
@@ -42,12 +42,13 @@
 % See COPYING.txt for license details
 
 %% 1. INITIAL SETUP
-[H, W, D] = size(img);
-if D==3
-    colorSynth = 1;
-else
-    colorSynth = 0;
-end
+[H, W, D] = size(img)
+stitch = "stitch"
+%if D==3
+%    colorSynth = 1;
+%else
+%    colorSynth = 0;
+%end
 [x, y] = meshgrid(1:W,1:H); 
 
 %check if we are using a fovea
@@ -148,7 +149,6 @@ for itp=1:length(poolingRegions)
     if shrinkFactor>1
         impatch_sc = imresize(impatch_sc,1/shrinkFactor,'bicubic');
     end
-    
     % get texture descriptor using P-S code
     for i=1:D,
         textureDescriptor{itp}.p(i) = textureAnalysis_forTTM(impatch_sc(:,:,i),currMaxScale,Nor,Na);

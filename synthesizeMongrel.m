@@ -53,8 +53,31 @@ prm = loadStructureFile(job_file);
 % load original image
 cmap = [];
 im = im2double(imread(img_file));
+%check if this is a greyscale image with three color channels repeated.
+disp('loaded image equal mannual tolerance large tol')
+if size(im,3)==3
+   channel_12 = abs(im(:,:,1)-im(:,:,2)) < 1e-1;
+   channel_13 = abs(im(:,:,1)-im(:,:,3)) < 1e-1;
+   sum_12 = sum(channel_12,'all')
+   sum_13 = sum(channel_13,'all')
+   % disp(norm(im(:,:,1)-im(:,:,2),2))
+   % disp(norm(im(:,:,1)-im(:,:,3),2))
+   % disp(norm(im(:,:,3)-im(:,:,2),2))
+   % if norm(im(:,:,1)-im(:,:,2),2)<=25 & norm(im(:,:,1)-im(:,:,3),2)<=25 & norm(im(:,:,3)-im(:,:,2),2) <=25
+   if sum(channel_12,'all') == numel(channel_12) | sum(channel_13,'all') == numel(channel_13)
+   % if abs(sum(channel_12,'all') - numel(channel_12)) < 100 & abs(sum(channel_13,'all'), numel(channel_13))<100
+      im = mean(im,3);
+      prm.colorSynth = 0;
+      disp('gray')
+   end
+end
+
 x = round(fx);
-y = round(fy);
+y = round( fy);
+
+image_size = size(im)
+image_name = img_file
+
 
 %% 2. CHECK IF IMAGE IS COLOR/GRAYSCALE
 % convert indexed-color images to rgb
@@ -62,17 +85,22 @@ if ~isempty(cmap)
     im = (ind2rgb(im,cmap));
 end
 % perform colorSynth based on whether the image is actually color/grayscale
-if size(im,3) == 1 
+if size(im,3) == 1
     prm.colorSynth = 0;
     componentInfo = [];
     msgbox('Performing grayscale synthesis.');
+    fprintf('Performing grayscale synthesis');
+% elseif (sum(sum(abs(im(:,:,1)-im(:,:,2))))<=5 && sum(sum(abs(im(:,:,2)-im(:,:,3))))<=5)
 elseif (sum(sum(abs(im(:,:,1)-im(:,:,2))))==0 && sum(sum(abs(im(:,:,2)-im(:,:,3))))==0)
+%elseif ((sum(sum(ismembertol(im(:,:,1), im(:,:,2))))==0) && ((sum(sum(ismembertol(im(:,:,2),im(:,:,3)))))==0))
     im = mean(im,3);
     prm.colorSynth = 0;
     componentInfo = [];
     msgbox('Performing grayscale synthesis.');
+    fprintf('Performing grayscale sysnthesis.');
 else
     prm.colorSynth = 1;
+    fprintf('Perforring color synthesis');
     msgbox('Performing color synthesis.');
     % get axes of color space and convert to that space
     if prm.colorSynth
@@ -85,7 +113,7 @@ end
 % output to a folder (within the same folder of the code) named
 % image_fixation_date_mongrelIndex
 [~, imname] = fileparts(img_file);
-% out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
+%out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
 out_dir = strcat('/home/gridsan/groups/RosenholtzLab/ecc_',num2str(round(fx)));
 % create folder as needed
 
@@ -232,9 +260,12 @@ catch
     keyboard
 end
 
-fid = fopen("/home/gridsan/groups/RosenholtzLab/imagename_randomseeds.txt",'a');
-fwrite(fid,sprintf('%s\t', prm.image_name));
-fwrite(fid,sprintf('%d\n', prm.curr_random_seed.Seed));
+%check if file is open and wait until not open to use
+filename = strcat("/home/gridsan/groups/RosenholtzLab/imagename_eccentricity_randomseed_",num2str(prm.source_img_fixation_x),".txt");
+fid = fopen(filename,'a');
+fwrite(fid,sprintf('%s\t%s\t%d\n', prm.image_name,num2str(round(fx)),prm.curr_random_seed.Seed));
+%fwrite(fid,sprintf('%s\t',num2str(round(fx))));
+%fwrite(fid,sprintf('%d\n', prm.curr_random_seed.Seed));
 fclose(fid);
 
 % print parameters to output file
@@ -261,7 +292,9 @@ fclose(fid);
 % fwrite(fid,sprintf('image_name ''%s''\n', prm.image_name)); 
 % fwrite(fid,sprintf('out_directory ''%s''\n', prm.out_dir)); 
 % fclose(fid);
-
+'sizes'
+size(im_pad,3)
+size(im,3)
 %% 7. RUN TTM
 % run the job
 % "stitch" together multiple pooling regions to create a continuous mongrel 
@@ -274,7 +307,7 @@ for ii = 1 : length(prm.scalesToRun)
         fixPt, reconsb, maskimg, prm.Nor, prm.Na, [prm.nIters(ii),nIterStart], ...
         prm.foveaSize, prm.prIters, ...
         prm.poolingRegions, prm.savename, ...
-        prm.saveIntermediate, prm.debugPath, verbose);
+        prm.saveIntermediate, prm.debugPath, verbose,prm.colorSynth);
 end
 
 %% 8. SAVE RESULT
