@@ -51,8 +51,9 @@ end
 p = gcp('nocreate');
 if isempty(p)
     c = parcluster('local'); % build the 'local' cluster object
-    %nw = c.NumWorkers  %get the number of workers
-    nw = 24
+    % nw = c.NumWorkers  %get the number of workers
+    % N = maxNumCompThreads
+    nw = 4
     parpool(nw-1); % open parallel pool, leaving one worker for CPU %managment
 end
 
@@ -60,7 +61,7 @@ end
 list = list_file
 fid = fopen(list_file);
 % mongrel list is a cell structure with one element per column
-mongrel_list = textscan(fid, '%s%f%f%f%s', 'CommentStyle', '%', 'MultipleDelimsAsOne', 1);
+mongrel_list = textscan(fid, '%s%f%f%f%s%s', 'CommentStyle', '%', 'MultipleDelimsAsOne', 1);
 fclose(fid);
 mongrel_list{1}{1}
 num_mongrels = size(mongrel_list{1}, 1);
@@ -69,7 +70,7 @@ im_fixation_x = mongrel_list{2};
 im_fixation_y = mongrel_list{3};
 fovea_size = mongrel_list{4};
 mongrel_index = mongrel_list{5};
-
+output_folder_all = mongrel_list{6}
 
 
 % mongrel_index is used to number output filenames if generating a bunch of
@@ -77,18 +78,26 @@ mongrel_index = mongrel_list{5};
 mongrel_list
 num_mongrels
 %% 3. GENERATE THE MONGRELS
-parfor ii = 1:num_mongrels 
+for ii = 1:num_mongrels 
+    output_folder = output_folder_all{ii};
+    if ~exist(output_folder)
+        mkdir(output_folder)
+    end
     %check if mongrel exists
     [~, imname] = fileparts(im_name{ii});
-    out_dir = strcat('/home/gridsan/groups/RosenholtzLab/ecc_',num2str(round(im_fixation_x(ii))));
+    out_dir = strcat(output_folder,'/ecc_',num2str(round(im_fixation_x(ii))));
+    %out_dir = strcat('/home/gridsan/groups/RosenholtzLab/failed_test/ecc_',num2str(round(im_fixation_x(ii))));
     out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(im_fixation_x(ii))),'.jpg');
     if ~isfile(out_path)
         try
             synthesizeMongrel(im_name{ii}, ...
                 im_fixation_x(ii), im_fixation_y(ii), fovea_size(ii), ...
-                mongrel_index(ii),0,job_file);
+                mongrel_index(ii),0,job_file, output_folder);
         catch
-            filename = strcat("/home/gridsan/groups/RosenholtzLab/failed_images_",num2str(round(im_fixation_x(ii))),".txt");
+            output_folder = output_folder_all{ii}
+            % filename = strcat("/home/gridsan/groups/RosenholtzLab/failed_images_train_",num2str(round(im_fixation_x(ii))),".txt");
+            check_output_folder = output_folder
+            filename = strcat(output_folder,"/failed_ecc_",num2str(round(im_fixation_x(ii))),".txt")
             fid = fopen(filename,'a');
             fwrite(fid,sprintf('%s\n', imname));
             fclose(fid);

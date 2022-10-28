@@ -1,5 +1,5 @@
-function synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file)   
-% synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file)   
+function synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file, output_folder)   
+% synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file,output_folder)   
 %
 % Synthesizes a single mongrel
 % 
@@ -114,7 +114,7 @@ end
 % image_fixation_date_mongrelIndex
 [~, imname] = fileparts(img_file);
 %out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
-out_dir = strcat('/home/gridsan/groups/RosenholtzLab/ecc_',num2str(round(fx)));
+out_dir = strcat(output_folder,'/ecc_',num2str(round(fx)));
 % create folder as needed
 
 curr_dir = dir;
@@ -261,7 +261,7 @@ catch
 end
 
 %check if file is open and wait until not open to use
-filename = strcat("/home/gridsan/groups/RosenholtzLab/imagename_eccentricity_randomseed_",num2str(prm.source_img_fixation_x),".txt");
+filename = strcat(output_folder,"/imgname_ecc_randomseeds_",num2str(prm.source_img_fixation_x),".txt");
 fid = fopen(filename,'a');
 fwrite(fid,sprintf('%s\t%s\t%d\n', prm.image_name,num2str(round(fx)),prm.curr_random_seed.Seed));
 %fwrite(fid,sprintf('%s\t',num2str(round(fx))));
