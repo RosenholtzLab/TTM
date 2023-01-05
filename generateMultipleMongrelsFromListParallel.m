@@ -53,7 +53,7 @@ if isempty(p)
     c = parcluster('local'); % build the 'local' cluster object
     % nw = c.NumWorkers  %get the number of workers
     % N = maxNumCompThreads
-    nw = 4
+    nw = 3 %24
     parpool(nw-1); % open parallel pool, leaving one worker for CPU %managment
 end
 
@@ -78,32 +78,32 @@ output_folder_all = mongrel_list{6}
 mongrel_list
 num_mongrels
 %% 3. GENERATE THE MONGRELS
-for ii = 1:num_mongrels 
+parfor ii = 1:num_mongrels 
     output_folder = output_folder_all{ii};
-    if ~exist(output_folder)
-        mkdir(output_folder)
-    end
+    % if ~exist(output_folder)
+    %     mkdir(output_folder)
+    % end
     %check if mongrel exists
     [~, imname] = fileparts(im_name{ii});
     out_dir = strcat(output_folder,'/ecc_',num2str(round(im_fixation_x(ii))));
     %out_dir = strcat('/home/gridsan/groups/RosenholtzLab/failed_test/ecc_',num2str(round(im_fixation_x(ii))));
-    out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(im_fixation_x(ii))),'.jpg');
+    out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(im_fixation_x(ii))),'_',mongrel_index,'.jpg');
     if ~isfile(out_path)
-        try
-            synthesizeMongrel(im_name{ii}, ...
+        %try
+        synthesizeMongrel(im_name{ii}, ...
                 im_fixation_x(ii), im_fixation_y(ii), fovea_size(ii), ...
                 mongrel_index(ii),0,job_file, output_folder);
-        catch
-            output_folder = output_folder_all{ii}
+        %catch
+            %output_folder = output_folder_all{ii}
             % filename = strcat("/home/gridsan/groups/RosenholtzLab/failed_images_train_",num2str(round(im_fixation_x(ii))),".txt");
-            check_output_folder = output_folder
-            filename = strcat(output_folder,"/failed_ecc_",num2str(round(im_fixation_x(ii))),".txt")
-            fid = fopen(filename,'a');
-            fwrite(fid,sprintf('%s\n', imname));
-            fclose(fid);
-            fprintf('image failed. writing to file\n');
-            imname
-        end
+            %check_output_folder = output_folder
+            %filename = strcat(output_folder,"/failed_ecc_",num2str(round(im_fixation_x(ii))),".txt")
+            %fid = fopen(filename,'a');
+            %fwrite(fid,sprintf('%s\n', imname));
+            %fclose(fid);
+            %fprintf('image failed. writing to file\n');
+            %imname
+        %end
     else
         fprintf('mongrel exists');
         imname
