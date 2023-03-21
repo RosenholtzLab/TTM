@@ -38,7 +38,7 @@ no_save = 1;
 addpath(genpath('./'));
 
 if nargin < 5
-    mongrel_idx = 1;
+    mongrel_idx = -1;
 end
 if nargin < 6
     verbose = 0;
@@ -114,7 +114,9 @@ end
 % image_fixation_date_mongrelIndex
 [~, imname] = fileparts(img_file);
 %out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
-out_dir = strcat(output_folder,'/ecc_',num2str(round(fx)));
+% get rid of strcat because we are reading it from the textfile now
+% out_dir = strcat(output_folder,'/ecc_',num2str(round(fx)));
+out_dir = output_folder;
 % create folder as needed
 
 curr_dir = dir;
@@ -134,7 +136,14 @@ im_pad_path = strcat(out_dir, '/pad_',imname,'_',string(mongrel_idx),'.png');
 img_mask_path = strcat(out_dir, '/imgmask',imname,'_',string(mongrel_idx),'.png');
 output_parameter_path = strcat(out_dir, '/synthesis_parameter_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters.
 % out_path =  strcat(out_dir, '/mongrelized_',imname,'_',string(mongrel_idx),'.jpg'); % for storing synthesized mongrels.
-out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(fx)),'_',string(mongrel_idx),'.jpg');
+
+if(mongrel_idx == -1)
+    % out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(fx)),'.jpg');
+    out_path =  strcat(out_dir,'/',imname,'.jpg');
+else
+    out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(fx)),'_',string(mongrel_idx),'.jpg');
+end
+
 parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters used in the synthesis.
 parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing 
 debug_path = strcat(out_dir, '/debug/');

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o coco_320_output_files/coco_output.sh.log-%j
 #SBATCH -n 24
-#SBATCH --array=1-10
+#SBATCH --array=1-89
 #SBATCH --mem=75GB
 # Load any required modules
 source /etc/profile

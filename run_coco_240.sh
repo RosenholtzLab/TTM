@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o coco_240_output_files/coco_output.sh.log-%j
 #SBATCH -n 24
-#SBATCH --array=1-89
+#SBATCH --array=1-51,53-71,73-82,87-89
 #SBATCH --mem=75GB
 
 # Load any required modules

@@ -216,6 +216,7 @@ if no_save == 0;
     imwrite(X,save_name);
 end
 % *** remove saving ***
-% imwrite(X,save_name); 
+% imwrite(X,save_name,'Resolution', 300); 
+% print(gcf, save_name,'-dpng','-r1200');
 % *** remove saving ***
 return;

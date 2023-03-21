@@ -2,9 +2,7 @@
 
 # Slurm sbatch options
 #SBATCH -o output.sh.log-%j
-#SBATCH --exclusive
-#SBATCH -n 48
-#SBATCH -N 1
+#SBATCH -n 8
 
 # Load any required modules
 source /etc/profile
@@ -12,7 +10,7 @@ source /etc/profile
 
 # Run Script
 #matlab -nodisplay -r "cd('$HOME/TTM_dev'); generateMultipleMongrelsFromListParallel('coco_test/coco_test.txt','default_fulliter.job'); exit;"
-matlab -nodisplay -r "cd('$HOME/TTM_dev'); generateMultipleMongrelsFromListParallel('coco_test/coco_foveated_edge.txt','default_fulliter.job'); exit;"
+/state/partition1/llgrid/pkg/matlabr2021b/bin/matlab -nodisplay -r "cd('/home/gridsan/groups/RosenholtzLab/TTM'); generateMultipleMongrelsFromListParallel('coco_test/debug.txt','default_rediter_60olap.job'); exit;"
 
 
 ##run this with:

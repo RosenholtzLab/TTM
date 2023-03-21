@@ -149,9 +149,11 @@ poolingRegions(:,2) = poolingRegions(:,2) + fy;
 
 % mark pooling region boundaries with buffer zone added and plot on screen
 [H, W, ~] = size(paddedimg);
-figure; image(paddedimg);
+% fig = gcf;
+figure; 
+image(paddedimg);
 % length(poolingRegions);
-for itp1=1:length(poolingRegions)
+for itp1=1:(length(poolingRegions))
     buffPixels = poolingRegions(itp1,5);            
         p_x = poolingRegions(itp1, 1);
         p_y = poolingRegions(itp1, 2);
@@ -177,7 +179,8 @@ hold off;
 save_name = strcat(out_dir,'/poolingRegion.png');
 
 [X, map] = frame2im(getframe(gcf));                                              
-
+% print(gcf, save_name,'-dpng','-r1200');
+% exportgraphics(X,
 imwrite(X,save_name); 
 close all;
 return;

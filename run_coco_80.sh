@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o coco_80_output_files/coco_output.sh.log-%j
 #SBATCH -n 24
-#SBATCH --array=1-89
+#SBATCH --array=1-591
 #SBATCH --mem=75GB
 # Load any required modules
 source /etc/profile
@@ -14,7 +14,7 @@ source /etc/profile
 echo "SLURMARRAYTASK: "$SLURM_ARRAY_TASK_ID
 job_txt_file=$(ls ../coco_testset_lists_80/*_${SLURM_ARRAY_TASK_ID}.txt)
 echo $job_txt_file
-matlab -nodisplay -r "cd('/home/gridsan/groups/RosenholtzLab/TTM'); generateMultipleMongrelsFromListParallel('$job_txt_file','default_fulliter_60olap.job'); exit;"
+/state/partition1/llgrid/pkg/matlabr2021b/bin/matlab -nodisplay -r "cd('/home/gridsan/groups/RosenholtzLab/TTM'); generateMultipleMongrelsFromListParallel('$job_txt_file','default_fulliter_60olap.job'); exit;"
 
 
 # #run this with:
