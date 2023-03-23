@@ -1,3 +1,6 @@
+run with this
+%getTTMStats('./testim.png',240,NaN,16,'default_fulliter_60olap.job','./')
+
 function stats = getTTMStats(img_file,fx,fy,foveaSize,job_file,output_folder)
 
     %read in job file stuff
@@ -202,7 +205,8 @@ end
     
     %convert to stitch bare bones variable names
     img = im_pad;
-    maxscale = [1, max(prm.scalesToRun)];
+    %maxscale = [1, max(prm.scalesToRun)];
+    maxscale = [ max(prm.scalesToRun), max(prm.scalesToRun)];
     reconSeed = reconsb;
     imgMask = maskimg;
     Nor = prm.Nor;

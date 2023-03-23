@@ -1,4 +1,4 @@
-function [texture_mat]=save_all_pools_new(filename,savename, image, with_pixel_hist)
+function [texture_mat]=save_all_pools_flat(filename,savename, image, with_pixel_hist)
     tic
     descriptor = load(filename);
     textureDescriptor = descriptor.textureDescriptor;
@@ -15,7 +15,7 @@ function [texture_mat]=save_all_pools_new(filename,savename, image, with_pixel_h
     end
     
     % digits_needed = length(num2str(num_pools(end)));
-    for i=1:1
+    for i=1:num_pools
     % i=1;
     % adding zeros to make life easier later
     % assumes no more than 10,000 pooling region
@@ -25,10 +25,13 @@ function [texture_mat]=save_all_pools_new(filename,savename, image, with_pixel_h
     end
     toc
     
-    % specify chunk size for compression
-    h5create(sprintf('%s.h5',savename),sprintf('/%s',image),size(texture_mat),ChunkSize=[1 3 2306],Deflate=2);
-    h5write(sprintf('%s.h5',savename),sprintf('/%s',image),texture_mat);
     
+    % specify chunk size for compression
+    % h5create(sprintf('%s.h5',savename),sprintf('/%s',image),size(texture_mat),ChunkSize=[1 3 2306],Deflate=2);
+    % h5write(sprintf('%s.h5',savename),sprintf('/%s',image),texture_mat);
+    
+    %save
+    save(sprintf('%s.mat',savename),'texture_mat');
     
     names = ["isConstant_size_1_pyinds_0_1"
     "constval_size_1_pyinds_1_2"
@@ -48,7 +51,7 @@ function [texture_mat]=save_all_pools_new(filename,savename, image, with_pixel_h
     "cmu_size_1_pyinds_2302_2303"
     "cmat_size_3_pyinds_2303_2306"];
     
-    
+    %save names of structs at each index if we want to
     fileID = fopen(sprintf('%s.txt',savename),'w');
     fprintf(fileID,'%s\n',names);
     fprintf(fileID,'%d,%d\n',poolingRegions(:,1),poolingRegions(:,2));
