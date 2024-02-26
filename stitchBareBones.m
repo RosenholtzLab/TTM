@@ -113,7 +113,22 @@ if colorSynth
         reconSeed = separateImage(reconSeed, componentInfo);  
     end
 end
-paddingColor = img(1,1,:); % paddingColor in ica space, if colorSynth. 
+%edited 3/31 by VD: choose a color on the bottom that tends to be ground. Also change the value just a little so we have some variety
+%paddingColor = img(1,1,:);
+paddingColor = img(end,end,:);
+meanval = ceil(paddingColor(1))/2;
+jitterval = ceil(paddingColor(1))/255;
+if mean(paddingColor)<meanval
+    paddingColor=paddingColor+jitterval;
+else
+    paddingColor = paddingColor-jitterval;
+end
+%limit ceiling
+paddingColor(paddingColor>ceil(paddingColor(1))) = ceil(paddingColor(1));
+%limit floor
+paddingColor(paddingColor<0) = 0;
+
+% paddingColor in ica space, if colorSynth. 
 % image is already padded, so this is the actual padding color, not the desired color.
 
 %% 2. GET TEXTURE DESCRIPTORS FOR EACH POOLING REGION
@@ -296,12 +311,15 @@ for its=nItersStart:nItersStop
         end
     end
     
+    saveIntermediateFlag=1
+    
     % save intermediate results
     if saveIntermediateFlag>0
         if colorSynth
             % convert back to rgb
-            synthRGB = integrateImage(synth, componentInfo, H, W);        
-            imwrite(synthRGB,sprintf('%s%s/intermediate/result_scale_%02d_sweep%02d.png',debugPath,savename,currMaxScale,its));   
+            synthRGB = integrateImage(synth, componentInfo, H, W);
+            imwrite(synthRGB,sprintf('%s%s/intermediate/result_scale_%02d_sweep%02d.png',debugPath,savename,currMaxScale,its));
+                   
         else
             imwrite(synth,sprintf('%s%s/intermediate/result_scale_%02d_sweep%02d.png',debugPath,savename,currMaxScale,its));   
         end

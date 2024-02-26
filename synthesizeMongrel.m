@@ -100,7 +100,7 @@ elseif (sum(sum(abs(im(:,:,1)-im(:,:,2))))==0 && sum(sum(abs(im(:,:,2)-im(:,:,3)
     fprintf('Performing grayscale sysnthesis.');
 else
     prm.colorSynth = 1;
-    fprintf('Perforring color synthesis');
+    fprintf('Performing color synthesis');
     msgbox('Performing color synthesis.');
     % get axes of color space and convert to that space
     if prm.colorSynth
@@ -180,7 +180,8 @@ prm.savename = sprintf('intermediateResults_%s',imname); %folder name for saving
 % somewhat arbitrarily make the padding the same color as the top left pixel
 %   (this is a good idea for typical psychophysical displays with a blank 
 %   background, but it is ok for the user to change this)
-padding_color = im(1,1,:);
+%padding_color = im(1,1,:);
+padding_color = im(end,end,:)
 
 if isnan(y)
     latticeType = 'rhombic'; %grid rhombic hexagonal
@@ -308,6 +309,7 @@ size(im,3)
 % run the job
 % "stitch" together multiple pooling regions to create a continuous mongrel 
 % consistent with all measured statistics (approximately, of course) 
+save_inter = prm.saveIntermediate
 reconsb = [];
 for ii = 1 : length(prm.scalesToRun)
     maxscale = prm.scalesToRun(ii); % lower numbers are coarser scales
@@ -324,7 +326,7 @@ outname = prm.out_path;
 if ~isempty(reconsb)
     % remove padding
     res = reconsb(padding(3)+1:padding(3)+size(im,1), padding(1)+1:padding(1)+size(im,2), :);
-    imwrite(res, outname, 'jpg', 'Quality', 100);
+    imwrite(res, outname);
 
 end
 end
