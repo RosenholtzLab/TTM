@@ -1,5 +1,5 @@
-function synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file)   
-% synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file)   
+function synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file, output_folder)   
+% synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_file,output_folder)   
 %
 % Synthesizes a single mongrel
 % 
@@ -33,10 +33,12 @@ function synthesizeMongrel(img_file,fx,fy,foveaSize,mongrel_idx, verbose,job_fil
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+no_save = 1;
+
 addpath(genpath('./'));
 
 if nargin < 5
-    mongrel_idx = 1;
+    mongrel_idx = -1;
 end
 if nargin < 6
     verbose = 0;
@@ -51,8 +53,31 @@ prm = loadStructureFile(job_file);
 % load original image
 cmap = [];
 im = im2double(imread(img_file));
+%check if this is a greyscale image with three color channels repeated.
+disp('loaded image equal mannual tolerance large tol')
+if size(im,3)==3
+   channel_12 = abs(im(:,:,1)-im(:,:,2)) < 1e-1;
+   channel_13 = abs(im(:,:,1)-im(:,:,3)) < 1e-1;
+   sum_12 = sum(channel_12,'all')
+   sum_13 = sum(channel_13,'all')
+   % disp(norm(im(:,:,1)-im(:,:,2),2))
+   % disp(norm(im(:,:,1)-im(:,:,3),2))
+   % disp(norm(im(:,:,3)-im(:,:,2),2))
+   % if norm(im(:,:,1)-im(:,:,2),2)<=25 & norm(im(:,:,1)-im(:,:,3),2)<=25 & norm(im(:,:,3)-im(:,:,2),2) <=25
+   if sum(channel_12,'all') == numel(channel_12) | sum(channel_13,'all') == numel(channel_13)
+   % if abs(sum(channel_12,'all') - numel(channel_12)) < 100 & abs(sum(channel_13,'all'), numel(channel_13))<100
+      im = mean(im,3);
+      prm.colorSynth = 0;
+      disp('gray')
+   end
+end
+
 x = round(fx);
-y = round(fy);
+y = round( fy);
+
+image_size = size(im)
+image_name = img_file
+
 
 %% 2. CHECK IF IMAGE IS COLOR/GRAYSCALE
 % convert indexed-color images to rgb
@@ -60,17 +85,22 @@ if ~isempty(cmap)
     im = (ind2rgb(im,cmap));
 end
 % perform colorSynth based on whether the image is actually color/grayscale
-if size(im,3) == 1 
+if size(im,3) == 1
     prm.colorSynth = 0;
     componentInfo = [];
     msgbox('Performing grayscale synthesis.');
+    fprintf('Performing grayscale synthesis');
+% elseif (sum(sum(abs(im(:,:,1)-im(:,:,2))))<=5 && sum(sum(abs(im(:,:,2)-im(:,:,3))))<=5)
 elseif (sum(sum(abs(im(:,:,1)-im(:,:,2))))==0 && sum(sum(abs(im(:,:,2)-im(:,:,3))))==0)
+%elseif ((sum(sum(ismembertol(im(:,:,1), im(:,:,2))))==0) && ((sum(sum(ismembertol(im(:,:,2),im(:,:,3)))))==0))
     im = mean(im,3);
     prm.colorSynth = 0;
     componentInfo = [];
     msgbox('Performing grayscale synthesis.');
+    fprintf('Performing grayscale sysnthesis.');
 else
     prm.colorSynth = 1;
+    fprintf('Performing color synthesis');
     msgbox('Performing color synthesis.');
     % get axes of color space and convert to that space
     if prm.colorSynth
@@ -83,10 +113,15 @@ end
 % output to a folder (within the same folder of the code) named
 % image_fixation_date_mongrelIndex
 [~, imname] = fileparts(img_file);
-out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',num2str(mongrel_idx));
+%out_dir = strcat(imname,'_X',num2str(round(fx)),'_Y',num2str(round(fy)),'_',datestr(now,29),'_',char(mongrel_idx));
+% get rid of strcat because we are reading it from the textfile now
+% out_dir = strcat(output_folder,'/ecc_',num2str(round(fx)));
+out_dir = output_folder;
 % create folder as needed
+
 curr_dir = dir;
 tmp_i = 1;
+
 while sum(strcmp({curr_dir.name},out_dir))
     namesplit = strsplit(out_dir,'_');
     if ~strcmp(namesplit{end},'1') && tmp_i == 1
@@ -97,11 +132,20 @@ while sum(strcmp({curr_dir.name},out_dir))
     end
 end
 mkdir(out_dir);
-im_pad_path = strcat(out_dir, '/pad_',imname,'_',num2str(mongrel_idx),'.png');
-img_mask_path = strcat(out_dir, '/imgmask',imname,'_',num2str(mongrel_idx),'.png');
-output_parameter_path = strcat(out_dir, '/synthesis_parameter_',imname,'_',num2str(mongrel_idx),'.txt'); % for storing parameters.
-out_path =  strcat(out_dir, '/mongrelized_',imname,'_',num2str(mongrel_idx),'.png'); % for storing synthesized mongrels.
-parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',num2str(mongrel_idx),'.txt'); % for storing parameters used in the synthesis.
+im_pad_path = strcat(out_dir, '/pad_',imname,'_',string(mongrel_idx),'.png');
+img_mask_path = strcat(out_dir, '/imgmask',imname,'_',string(mongrel_idx),'.png');
+output_parameter_path = strcat(out_dir, '/synthesis_parameter_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters.
+% out_path =  strcat(out_dir, '/mongrelized_',imname,'_',string(mongrel_idx),'.jpg'); % for storing synthesized mongrels.
+
+if(mongrel_idx == -1)
+    % out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(fx)),'.jpg');
+    out_path =  strcat(out_dir,'/',imname,'.jpg');
+else
+    out_path =  strcat(out_dir, '/mongrel_',imname,'_ecc_',num2str(round(fx)),'_',string(mongrel_idx),'.jpg');
+end
+
+parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing parameters used in the synthesis.
+parameter_output_path =  strcat(out_dir, '/parameters_',imname,'_',string(mongrel_idx),'.txt'); % for storing 
 debug_path = strcat(out_dir, '/debug/');
 if prm.colorSynth
     addpath(genpath('FastICA/'));
@@ -136,18 +180,42 @@ prm.savename = sprintf('intermediateResults_%s',imname); %folder name for saving
 % somewhat arbitrarily make the padding the same color as the top left pixel
 %   (this is a good idea for typical psychophysical displays with a blank 
 %   background, but it is ok for the user to change this)
-padding_color = im(1,1,:);
-[im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+%padding_color = im(1,1,:);
+padding_color = im(end,end,:)
 
-fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
+if isnan(y)
+    latticeType = 'rhombic'; %grid rhombic hexagonal
+    disp(sprintf('Second Fixation coordinate is nan, running uniform pooling at %d pixels eccentricity.',x));
+    disp(sprintf('Using %s Lattice',latticeType));
+    [im_pad,fx,fy,poolingRegions,padding] = padToFixationUniform(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir,latticeType);
+    
+    fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
 
-% add peripheral blur to original image
-im_pad = simulatePeripheralBlur(im_pad, fixPt, foveaSize);
+    % add peripheral blur to original image
+    im_pad = simulatePeripheralBlurUniform(im_pad, fixPt, foveaSize);
+    
+else
+    disp(sprintf('Fixation coordinate is %d,%d, running foveated pooling.\n',x,y));
+    [im_pad,fx,fy,poolingRegions,padding] = padToFixation(im,[x,y], foveaSize,prm.poolingRate, prm.radialOverlap, prm.numAngular, padding_color,out_dir);
+    
+    fixPt = [fx,fy]; % after padding, the fixation point has new coordinates
+
+    % add peripheral blur to original image
+    im_pad = simulatePeripheralBlur(im_pad, fixPt, foveaSize);
+    
+end
+
+
 % since some old routines grab the padding color from the corner, reinstate
 % that here, after the blurring operation which might have changed it
 im_pad(1,1,:) = padding_color; 
 % save the padded, acuity-adjusted input image
-imwrite(im_pad, im_pad_path);
+if no_save == 0
+    imwrite(im_pad, im_pad_path);
+end
+% *** remove saving ***
+% imwrite(im_pad, im_pad_path);
+% *** remove saving ***
 
 %% 5. CREATE A MASK SHOWING ORIGINAL IMAGE VS. PADDING
 % if useImgMask is set (typical use), then on some synthesis iterations we
@@ -164,7 +232,12 @@ else
     maskimg = padarray(maskimg,[0 padding(2)], 0, 'post') ;
 	maskimg = padarray(maskimg,[padding(3) 0], 0, 'pre') ;
 	maskimg = padarray(maskimg,[padding(4) 0], 0, 'post') ;
-    imwrite(maskimg, img_mask_path);
+    if no_save == 0
+        imwrite(maskimg, img_mask_path);
+    end
+    % *** remove saving ***
+    % imwrite(maskimg, img_mask_path);
+    % *** remove saving ***
 end
 
 %% 6. CREATE OUTPUT PARAMETERS FILE
@@ -187,40 +260,56 @@ prm.componentInfo = componentInfo;
 prm.poolingRegions = poolingRegions;
 prm.useImgMask = useImgMask;
 try
-    save(strcat(out_dir,'/parameter.mat'),'prm');
+    if no_save == 0
+        save(strcat(out_dir,'/parameter.mat'),'prm');
+    end
+    % *** remove saving *** 
+    %save(strcat(out_dir,'/parameter.mat'),'prm');
+    % *** remove saving ***
 catch
     keyboard
 end
 
-% print parameters to output file
-fid = fopen(parameter_output_path,'wt');
-fwrite(fid,sprintf('useImgMask ''%d''\n', prm.useImgMask)); 
-fwrite(fid,sprintf('random_mode ''%s''\n', prm.random_mode)); 
-fwrite(fid,sprintf('random_type ''%s''\n', prm.curr_random_seed.Type)); 
-fwrite(fid,sprintf('random_seed ''%d''\n', prm.curr_random_seed.Seed)); 
-fwrite(fid,sprintf('saveIntermediate ''%d''\n', prm.saveIntermediate)); 
-fwrite(fid,sprintf('poolingRate ''%d''\n', prm.poolingRate)); 
-fprintf(fid, sprintf('scalesToRun [%d, %d, %d, %d]\n', ...
-    prm.scalesToRun(1), prm.scalesToRun(2), prm.scalesToRun(3), prm.scalesToRun(4)));
-fwrite(fid,sprintf('Nor ''%d''\n', prm.Nor)); 
-fwrite(fid,sprintf('Na ''%d''\n', prm.Na)); 
-fprintf(fid, sprintf('nIters [%d, %d, %d, %d]\n', ...
-    prm.nIters(1), prm.nIters(2), prm.nIters(3), prm.nIters(4)));
-fwrite(fid,sprintf('prIters ''%d''\n', prm.prIters)); 
-fwrite(fid,sprintf('radialOverlap ''%d''\n', prm.radialOverlap)); 
-fwrite(fid,sprintf('numAngular ''%d''\n', prm.numAngular)); 
-fwrite(fid,sprintf('colorSynth ''%d''\n', prm.colorSynth)); 
-fwrite(fid,sprintf('foveaSize ''%d''\n', prm.foveaSize)); 
-fwrite(fid,sprintf('fix_x ''%d''\n', prm.source_img_fixation_x)); 
-fwrite(fid,sprintf('fix_y ''%d''\n', prm.source_img_fixation_y)); 
-fwrite(fid,sprintf('image_name ''%s''\n', prm.image_name)); 
-fwrite(fid,sprintf('out_directory ''%s''\n', prm.out_dir)); 
+%check if file is open and wait until not open to use
+filename = strcat(output_folder,"/imgname_ecc_randomseeds_",num2str(prm.source_img_fixation_x),".txt");
+fid = fopen(filename,'a');
+fwrite(fid,sprintf('%s\t%s\t%d\n', prm.image_name,num2str(round(fx)),prm.curr_random_seed.Seed));
+%fwrite(fid,sprintf('%s\t',num2str(round(fx))));
+%fwrite(fid,sprintf('%d\n', prm.curr_random_seed.Seed));
 fclose(fid);
 
+% print parameters to output file
+% fid = fopen(parameter_output_path,'wt');
+% fwrite(fid,sprintf('useImgMask ''%d''\n', prm.useImgMask)); 
+% fwrite(fid,sprintf('random_mode ''%s''\n', prm.random_mode)); 
+% fwrite(fid,sprintf('random_type ''%s''\n', prm.curr_random_seed.Type)); 
+% fwrite(fid,sprintf('random_seed ''%d''\n', prm.curr_random_seed.Seed)); 
+% fwrite(fid,sprintf('saveIntermediate ''%d''\n', prm.saveIntermediate)); 
+% fwrite(fid,sprintf('poolingRate ''%d''\n', prm.poolingRate)); 
+% fprintf(fid, sprintf('scalesToRun [%d, %d, %d, %d]\n', ...
+%     prm.scalesToRun(1), prm.scalesToRun(2), prm.scalesToRun(3), prm.scalesToRun(4)));
+% fwrite(fid,sprintf('Nor ''%d''\n', prm.Nor)); 
+% fwrite(fid,sprintf('Na ''%d''\n', prm.Na)); 
+% fprintf(fid, sprintf('nIters [%d, %d, %d, %d]\n', ...
+%     prm.nIters(1), prm.nIters(2), prm.nIters(3), prm.nIters(4)));
+% fwrite(fid,sprintf('prIters ''%d''\n', prm.prIters)); 
+% fwrite(fid,sprintf('radialOverlap ''%d''\n', prm.radialOverlap)); 
+% fwrite(fid,sprintf('numAngular ''%d''\n', prm.numAngular)); 
+% fwrite(fid,sprintf('colorSynth ''%d''\n', prm.colorSynth)); 
+% fwrite(fid,sprintf('foveaSize ''%d''\n', prm.foveaSize)); 
+% fwrite(fid,sprintf('fix_x ''%d''\n', prm.source_img_fixation_x)); 
+% fwrite(fid,sprintf('fix_y ''%d''\n', prm.source_img_fixation_y)); 
+% fwrite(fid,sprintf('image_name ''%s''\n', prm.image_name)); 
+% fwrite(fid,sprintf('out_directory ''%s''\n', prm.out_dir)); 
+% fclose(fid);
+'sizes'
+size(im_pad,3)
+size(im,3)
 %% 7. RUN TTM
 % run the job
 % "stitch" together multiple pooling regions to create a continuous mongrel 
 % consistent with all measured statistics (approximately, of course) 
+save_inter = prm.saveIntermediate
 reconsb = [];
 for ii = 1 : length(prm.scalesToRun)
     maxscale = prm.scalesToRun(ii); % lower numbers are coarser scales
@@ -229,7 +318,7 @@ for ii = 1 : length(prm.scalesToRun)
         fixPt, reconsb, maskimg, prm.Nor, prm.Na, [prm.nIters(ii),nIterStart], ...
         prm.foveaSize, prm.prIters, ...
         prm.poolingRegions, prm.savename, ...
-        prm.saveIntermediate, prm.debugPath, verbose);
+        prm.saveIntermediate, prm.debugPath, verbose,prm.colorSynth);
 end
 
 %% 8. SAVE RESULT
@@ -238,5 +327,6 @@ if ~isempty(reconsb)
     % remove padding
     res = reconsb(padding(3)+1:padding(3)+size(im,1), padding(1)+1:padding(1)+size(im,2), :);
     imwrite(res, outname);
+
 end
 end

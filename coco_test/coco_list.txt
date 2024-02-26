@@ -1,0 +1,12 @@
+coco_test/000000000139.jpg	100	NaN	16	uniform_40olap_hex
+coco_test/000000000139.jpg	200	NaN	16	uniform_40olap_hex
+coco_test/000000000139.jpg	300	NaN	16	uniform_40olap_hex
+coco_test/000000000552.jpg	100	NaN	16	uniform_40olap_hex
+coco_test/000000000552.jpg	200	NaN	16	uniform_40olap_hex
+coco_test/000000000552.jpg	300	NaN	16	uniform_40olap_hex
+coco_test/000000000554.jpg	100	NaN	16	uniform_40olap_hex
+coco_test/000000000554.jpg	200	NaN	16	uniform_40olap_hex
+coco_test/000000000554.jpg	300	NaN	16	uniform_40olap_hex
+coco_test/000000000205.jpg	100	NaN	16	uniform_40olap_hex
+coco_test/000000000205.jpg	200	NaN	16	uniform_40olap_hex
+coco_test/000000000205.jpg	300	NaN	16	uniform_40olap_hex

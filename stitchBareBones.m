@@ -1,7 +1,7 @@
 function [synth] = stitchBareBones(img, componentInfo, ...
     maxscale, fixPt, reconSeed, imgMask, Nor, Na, ...
     nItersVec, foveaSize, prIters, poolingRegions, savename, ...
-    saveIntermediateFlag, debugPath, verbose)
+    saveIntermediateFlag, debugPath, verbose, colorSynth)
 % [synth] = stitchBareBones(img, componentInfo, ...
 %     maxscale, fixPt, reconSeed, seedMask, Nor, Na, ...
 %     nItersVec, foveaSize, prIters, poolingRegions, savename, ...
@@ -42,30 +42,43 @@ function [synth] = stitchBareBones(img, componentInfo, ...
 % See COPYING.txt for license details
 
 %% 1. INITIAL SETUP
-[H, W, D] = size(img);
-if D==3
-    colorSynth = 1;
-else
-    colorSynth = 0;
-end
+[H, W, D] = size(img)
+stitch = "stitch"
+%if D==3
+%    colorSynth = 1;
+%else
+%    colorSynth = 0;
+%end
 [x, y] = meshgrid(1:W,1:H); 
 
-% save fovea information
-% we presume that the "fovea" -- a region about fixation specified by
-% foveaSize, is preserved perfectly. On each global iteration we reapply
-% this known "fovea" information.
-% (somewhat wasteful, could just read in fovea image after the first time)
-foveaMask = (x-fixPt(1)).^2+(y-fixPt(2)).^2<foveaSize^2; 
+%check if we are using a fovea
+if isnan(fixPt(2))
+    uniform_pooling = true;
+else
+    uniform_pooling = false;
+end;
+
+%create our seed image
 foveaImage = zeros(size(img));
-for i = 1:D
-    foveaImage(:,:,i) = img(:,:,i).*foveaMask;
-end
-if saveIntermediateFlag>0 && maxscale(1)==1 % 1st time, save fovea image
-    if ~exist(sprintf('%s%s',debugPath,savename),'dir')
-        mkdir(sprintf('%s%s',debugPath,savename));
+
+%fill foveal region of seed image with original image if this is a foveaed mongrel
+if uniform_pooling==false
+    % save fovea information
+    % we presume that the "fovea" -- a region about fixation specified by
+    % foveaSize, is preserved perfectly. On each global iteration we reapply
+    % this known "fovea" information.
+    % (somewhat wasteful, could just read in fovea image after the first time)
+    foveaMask = (x-fixPt(1)).^2+(y-fixPt(2)).^2<foveaSize^2; 
+    for i = 1:D
+        foveaImage(:,:,i) = img(:,:,i).*foveaMask;
     end
-    if maxscale(1)==1 && nItersVec(2)==1
-        imwrite(foveaImage,sprintf('%s%s/fovea.png',debugPath,savename));
+    if saveIntermediateFlag>0 && maxscale(1)==1 % 1st time, save fovea image
+        if ~exist(sprintf('%s%s',debugPath,savename),'dir')
+            mkdir(sprintf('%s%s',debugPath,savename));
+        end
+        if maxscale(1)==1 && nItersVec(2)==1
+            imwrite(foveaImage,sprintf('%s%s/fovea.png',debugPath,savename));
+        end
     end
 end
 
@@ -100,7 +113,22 @@ if colorSynth
         reconSeed = separateImage(reconSeed, componentInfo);  
     end
 end
-paddingColor = img(1,1,:); % paddingColor in ica space, if colorSynth. 
+%edited 3/31 by VD: choose a color on the bottom that tends to be ground. Also change the value just a little so we have some variety
+%paddingColor = img(1,1,:);
+paddingColor = img(end,end,:);
+meanval = ceil(paddingColor(1))/2;
+jitterval = ceil(paddingColor(1))/255;
+if mean(paddingColor)<meanval
+    paddingColor=paddingColor+jitterval;
+else
+    paddingColor = paddingColor-jitterval;
+end
+%limit ceiling
+paddingColor(paddingColor>ceil(paddingColor(1))) = ceil(paddingColor(1));
+%limit floor
+paddingColor(paddingColor<0) = 0;
+
+% paddingColor in ica space, if colorSynth. 
 % image is already padded, so this is the actual padding color, not the desired color.
 
 %% 2. GET TEXTURE DESCRIPTORS FOR EACH POOLING REGION
@@ -116,6 +144,11 @@ for itp=1:length(poolingRegions)
     a = poolingRegions(itp,3);
     b = poolingRegions(itp,4);
     try
+        p_y-a-buffPixels+1;
+        p_y+b+buffPixels;
+        p_x-a-buffPixels+1;
+        p_x+b+buffPixels;
+        size(img);
         impatch = img(p_y-a-buffPixels+1:p_y+b+buffPixels, p_x-a-buffPixels+1:p_x+b+buffPixels, :);
     catch
         keyboard
@@ -131,7 +164,6 @@ for itp=1:length(poolingRegions)
     if shrinkFactor>1
         impatch_sc = imresize(impatch_sc,1/shrinkFactor,'bicubic');
     end
-    
     % get texture descriptor using P-S code
     for i=1:D,
         textureDescriptor{itp}.p(i) = textureAnalysis_forTTM(impatch_sc(:,:,i),currMaxScale,Nor,Na);
@@ -144,6 +176,21 @@ for itp=1:length(poolingRegions)
     
 end
 
+% saving textureDescriptor (the feature vectors for each pooling region)
+% only saving at 4th scale this is the only time that the call to textureAnalysis_for_TTM
+% gets 4 scales as the scale parameter (which is all the scales to run)
+if currMaxScale==4
+    % get the output directory (remove the debug folder)
+    path_parts = regexp(debugPath,'/','split');
+    output_dir = sprintf('%s',path_parts{1});
+    % if ~exist(sprintf('%s',debugPath),'dir')
+    %     mkdir(sprintf('%s',debugPath));
+    % end
+    % save(sprintf('%s/poolingDescriptor.mat',output_dir),'textureDescriptor', 'poolingRegions');
+    % save(sprintf('%s/parameter.mat',output_dir),'poolingRegions', '-append');
+    % disp(sprintf('saved pooling region information'))
+end
+
 if saveIntermediateFlag>0
     if ~exist(sprintf('%s%s/intermediate',debugPath,savename),'dir')
         mkdir(sprintf('%s%s/intermediate',debugPath,savename));
@@ -153,12 +200,17 @@ end
 %% 3. SYNTHESIZE POOLING REGIONS 
 for its=nItersStart:nItersStop
     disp(sprintf('Scale = %02d, Sweep = %02d',currMaxScale,its));
+    listPR = [1:length(poolingRegions)];
+    
     % check if this round is spiraling out or in
-    if mod(its,2)
-        listPR = [1:length(poolingRegions)];
-    else
-        listPR = [length(poolingRegions):-1:1];
-    end
+    % if mod(its,2)
+    %     listPR = [1:length(poolingRegions)];
+    % else
+    %     listPR = [length(poolingRegions):-1:1];
+    % end
+    
+    %shuffle randomly
+    listPR = randperm(length(poolingRegions));
 
     % synthesize pooling regions one by one
     for itp=listPR
@@ -251,17 +303,23 @@ for its=nItersStart:nItersStop
             disp(sprintf('Scale = %02d, Sweep = %02d, Pooling Region = %04d',currMaxScale,its,itp));
         end        
     end % move on to the next pooling region
-    % apply fovea to result
-    for i=1:D,
-        synth(:,:,i) = synth(:,:,i).*(1-foveaMask) + foveaImage(:,:,i).*foveaMask;
+    
+    if uniform_pooling==false
+        % apply fovea to result if this is a foveated image
+        for i=1:D,
+            synth(:,:,i) = synth(:,:,i).*(1-foveaMask) + foveaImage(:,:,i).*foveaMask;
+        end
     end
+    
+    saveIntermediateFlag=1
     
     % save intermediate results
     if saveIntermediateFlag>0
         if colorSynth
             % convert back to rgb
-            synthRGB = integrateImage(synth, componentInfo, H, W);        
-            imwrite(synthRGB,sprintf('%s%s/intermediate/result_scale_%02d_sweep%02d.png',debugPath,savename,currMaxScale,its));   
+            synthRGB = integrateImage(synth, componentInfo, H, W);
+            imwrite(synthRGB,sprintf('%s%s/intermediate/result_scale_%02d_sweep%02d.png',debugPath,savename,currMaxScale,its));
+                   
         else
             imwrite(synth,sprintf('%s%s/intermediate/result_scale_%02d_sweep%02d.png',debugPath,savename,currMaxScale,its));   
         end

@@ -1,0 +1,7 @@
+On coco_test output files in Vashas ~/TTM/coco_test/:
+
+each image is run 4 times
+
+filename suffix _1 and _2 are run with full iterations (10,10,10,10). These two replicate outputs test the same random seed testing for outputs being deterministic.
+
+filename suffix _3 and _3_1 and run with reduced iterations (6,5,3,3). These two replicate  outputs test the same random seed testing for outputs being deterministic.

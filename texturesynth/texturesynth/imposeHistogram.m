@@ -54,9 +54,9 @@ else
             snr_kurt = snr(ht.moments(4),ht.moments(4)-kurt2_forTTM(X)); snr_kurt_within(2) = snr_kurt;    
         end
     catch
-        if verbose,
-            disp('Catch block: Matching full histogram instead of only skewness and kurtosis');
-        end
+        % suppress this print statement
+        % there was a verbose flag for it previously
+        % disp('Catch block: Matching full histogram instead of only skewness and kurtosis');
         X = Xcopy;
     
         snr_skew_within(1) = snr(ht.moments(3),ht.moments(3)-skew2_forTTM(Xcopy));

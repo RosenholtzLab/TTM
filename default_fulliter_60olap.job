@@ -1,0 +1,12 @@
+random_mode 'shuffle'
+random_type []
+random_seed [1]
+saveIntermediate 0
+poolingRate .5
+scalesToRun 1:4
+Nor 4
+Na 7
+nIters [10 10 10 10]
+prIters 3
+radialOverlap .6
+numAngular 36
